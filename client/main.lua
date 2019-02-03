@@ -30,7 +30,7 @@ function StartWorkaroundTask()
 	local playerPed = PlayerPedId()
 	isRunningWorkaround = true
 
-	while timer < 100 do
+	while timer < 10000 do
 		Citizen.Wait(0)
 		timer = timer + 1
 
