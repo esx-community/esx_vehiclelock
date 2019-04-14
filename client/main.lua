@@ -39,7 +39,7 @@ function StartWorkaroundTask()
 		if DoesEntityExist(vehicle) then
 			local lockStatus = GetVehicleDoorLockStatus(vehicle)
 
-			if lockStatus == 4 then
+			if lockStatus == 2 then
 				ClearPedTasks(playerPed)
 			end
 		end
@@ -73,11 +73,11 @@ function ToggleVehicleLock()
 			local lockStatus = GetVehicleDoorLockStatus(vehicle)
 
 			if lockStatus == 1 then -- unlocked
-				SetVehicleDoorsLocked(vehicle, 4)
+				SetVehicleDoorsLocked(vehicle, 2)
 				PlayVehicleDoorCloseSound(vehicle, 1)
 
 				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
-			elseif lockStatus == 4 then -- locked
+			elseif lockStatus == 2 then -- locked
 				SetVehicleDoorsLocked(vehicle, 1)
 				PlayVehicleDoorOpenSound(vehicle, 0)
 
