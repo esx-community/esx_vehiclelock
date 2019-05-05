@@ -90,7 +90,7 @@ end
 
 Citizen.CreateThread(function()
 	while true do
-		Citizen.Wait(10)
+		Citizen.Wait(0)
 
 		if IsControlJustReleased(0, Keys['U']) and IsInputDisabled(0) then
 			ToggleVehicleLock()
