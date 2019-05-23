@@ -60,7 +60,7 @@ function ToggleVehicleLock()
 	if IsPedInAnyVehicle(playerPed, false) then
 		vehicle = GetVehiclePedIsIn(playerPed, false)
 	else
-		vehicle = GetClosestVehicle(coords, 8.0, 0, 70)
+		vehicle = GetClosestVehicle(coords, 8.0, 0, 71)  -- Fix can't lock Emergency Vehicles
 	end
 
 	if not DoesEntityExist(vehicle) then
@@ -72,7 +72,7 @@ function ToggleVehicleLock()
 		if isOwnedVehicle then
 			local lockStatus = GetVehicleDoorLockStatus(vehicle)
 
-			if lockStatus == 1 then -- unlocked
+			if lockStatus == 0 then -- unlocked
 				SetVehicleDoorsLocked(vehicle, 4)
 				PlayVehicleDoorCloseSound(vehicle, 1)
 
