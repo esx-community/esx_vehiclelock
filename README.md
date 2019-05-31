@@ -1,3 +1,6 @@
+# esx_vehiclelock_jiakang
+If have issues ( not only this script ), you can tell me and I will fix it. Thanks!
+ 
 # esx_vehiclelock
 
 Simple vehicle lock system. Press U or DPAD-DOWN on a controller to toggle the lock.
