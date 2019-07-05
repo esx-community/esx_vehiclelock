@@ -12,3 +12,12 @@ ESX.RegisterServerCallback('esx_vehiclelock:requestPlayerCars', function(source,
 		cb(result[1] ~= nil)
 	end)
 end)
+
+ESX.RegisterServerCallback('esx_vehiclelock:playerJob', function(source, cb)
+
+	local _source = source
+	local xPlayer = ESX.GetPlayerFromId(_source)
+	local job = xPlayer.job.name
+
+	cb(job)
+end)

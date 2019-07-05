@@ -52,6 +52,13 @@ function ToggleVehicleLock()
 	local playerPed = PlayerPedId()
 	local coords = GetEntityCoords(playerPed)
 	local vehicle
+	local job --get player job
+
+	ESX.TriggerServerCallback('esx_vehiclelock:playerJob', function(_job)
+		job = _job
+	end)
+
+	Citizen.Wait(200) -- wait for job
 
 	Citizen.CreateThread(function()
 		StartWorkaroundTask()
@@ -61,31 +68,72 @@ function ToggleVehicleLock()
 		vehicle = GetVehiclePedIsIn(playerPed, false)
 	else
 		vehicle = GetClosestVehicle(coords, 8.0, 0, 70)
+		print('colsest vehicle: ' ..vehicle)
 	end
 
-	if not DoesEntityExist(vehicle) then
+	if not DoesEntityExist(vehicle) then --GetClosestVehicle doesn't return police cars. So use GetRayCast
+		local player = GetPlayerPed(-1)
+		local pos = GetEntityCoords(player)
+		local entityWorld = GetOffsetFromEntityInWorldCoords(player, 0.0, 20.0, 0.0)
+		local rayHandle = CastRayPointToPoint(pos.x, pos.y, pos.z, entityWorld.x, entityWorld.y, entityWorld.z, 10, player, 0)
+		local a, b, c, d, vehicleHandle = GetRaycastResult(rayHandle)
+		if not DoesEntityExist(vehicleHandle) then --If not vehicle still found after ray cast, then return as dork
+			return
+		else
+			local plate = GetVehicleNumberPlateText(vehicleHandle)
+			if plate ~= nil then
+				ESX.TriggerServerCallback('esx_vehiclelock:requestPlayerCars', function(isOwnedVehicle)
+					if isOwnedVehicle then
+						local lockStatus = GetVehicleDoorLockStatus(vehicleHandle)
+						print('lockstatus: ' ..tostring(lockStatus))
+						if lockStatus == 1 then -- unlocked
+							SetVehicleDoorsLocked(vehicleHandle, 4)
+							PlayVehicleDoorCloseSound(vehicleHandle, 1)
+							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
+						elseif lockStatus == 4 then -- locked
+							SetVehicleDoorsLocked(vehicleHandle, 1)
+							PlayVehicleDoorOpenSound(vehicleHandle, 0)
+							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+						elseif lockStatus == 5 then -- locked
+							SetVehicleDoorsLocked(vehicleHandle, 1)
+							PlayVehicleDoorOpenSound(vehicleHandle, 0)
+							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+						elseif lockStatus == 7 then -- locked
+							SetVehicleDoorsLocked(vehicleHandle, 4)
+							PlayVehicleDoorCloseSound(vehicleHandle, 1)
+							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
+						elseif lockStatus == 2 then -- locked
+							SetVehicleDoorsLocked(vehicleHandle, 4)
+							PlayVehicleDoorCloseSound(vehicleHandle, 1)
+							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
+						end
+					end
+				end, ESX.Math.Trim(plate))
+			end
+		end
+	end
+
+	if not DoesEntityExist(vehicle) then --If no vehicle still found after ray cast, then return as dork
 		return
 	end
 
 	ESX.TriggerServerCallback('esx_vehiclelock:requestPlayerCars', function(isOwnedVehicle)
-
 		if isOwnedVehicle then
 			local lockStatus = GetVehicleDoorLockStatus(vehicle)
-
+			print('locked? ' .. lockStatus)
 			if lockStatus == 1 then -- unlocked
 				SetVehicleDoorsLocked(vehicle, 4)
 				PlayVehicleDoorCloseSound(vehicle, 1)
-
 				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
 			elseif lockStatus == 4 then -- locked
 				SetVehicleDoorsLocked(vehicle, 1)
 				PlayVehicleDoorOpenSound(vehicle, 0)
-
 				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
 			end
 		end
 
 	end, ESX.Math.Trim(GetVehicleNumberPlateText(vehicle)))
+
 end
 
 Citizen.CreateThread(function()
@@ -95,8 +143,8 @@ Citizen.CreateThread(function()
 		if IsControlJustReleased(0, Keys['U']) and IsInputDisabled(0) then
 			ToggleVehicleLock()
 			Citizen.Wait(300)
-	
-		-- D-pad down on controllers works, too!
+
+			-- D-pad down on controllers works, too!
 		elseif IsControlJustReleased(0, 173) and not IsInputDisabled(0) then
 			ToggleVehicleLock()
 			Citizen.Wait(300)
