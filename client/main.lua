@@ -52,13 +52,6 @@ function ToggleVehicleLock()
 	local playerPed = PlayerPedId()
 	local coords = GetEntityCoords(playerPed)
 	local vehicle
-	local job --get player job
-
-	ESX.TriggerServerCallback('esx_vehiclelock:playerJob', function(_job)
-		job = _job
-	end)
-
-	Citizen.Wait(200) -- wait for job
 
 	Citizen.CreateThread(function()
 		StartWorkaroundTask()
@@ -68,7 +61,6 @@ function ToggleVehicleLock()
 		vehicle = GetVehiclePedIsIn(playerPed, false)
 	else
 		vehicle = GetClosestVehicle(coords, 8.0, 0, 70)
-		print('colsest vehicle: ' ..vehicle)
 	end
 
 	if not DoesEntityExist(vehicle) then --GetClosestVehicle doesn't return police cars. So use GetRayCast
@@ -85,7 +77,6 @@ function ToggleVehicleLock()
 				ESX.TriggerServerCallback('esx_vehiclelock:requestPlayerCars', function(isOwnedVehicle)
 					if isOwnedVehicle then
 						local lockStatus = GetVehicleDoorLockStatus(vehicleHandle)
-						print('lockstatus: ' ..tostring(lockStatus))
 						if lockStatus == 1 then -- unlocked
 							SetVehicleDoorsLocked(vehicleHandle, 4)
 							PlayVehicleDoorCloseSound(vehicleHandle, 1)
@@ -120,7 +111,6 @@ function ToggleVehicleLock()
 	ESX.TriggerServerCallback('esx_vehiclelock:requestPlayerCars', function(isOwnedVehicle)
 		if isOwnedVehicle then
 			local lockStatus = GetVehicleDoorLockStatus(vehicle)
-			print('locked? ' .. lockStatus)
 			if lockStatus == 1 then -- unlocked
 				SetVehicleDoorsLocked(vehicle, 4)
 				PlayVehicleDoorCloseSound(vehicle, 1)
