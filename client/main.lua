@@ -62,13 +62,14 @@ function ToggleVehicleLock()
 	else
 		vehicle = GetClosestVehicle(coords, 8.0, 0, 70)
 	end
-	
+
 	if not DoesEntityExist(vehicle) then --GetClosestVehicle doesn't return police cars. So use GetRayCast
 		local player = GetPlayerPed(-1)
 		local pos = GetEntityCoords(player)
-		local entityWorld = GetOffsetFromEntityInWorldCoords(player, 0.0, 20.0, 0.0)
+		local entityWorld = GetOffsetFromEntityInWorldCoords(player, 20.0, 20.0, 0.0)
 		local rayHandle = CastRayPointToPoint(pos.x, pos.y, pos.z, entityWorld.x, entityWorld.y, entityWorld.z, 10, player, 0)
 		local a, b, c, d, vehicleHandle = GetRaycastResult(rayHandle)
+
 		if not DoesEntityExist(vehicleHandle) then --If not vehicle still found after ray cast, then return as dork
 			return
 		else
@@ -80,27 +81,17 @@ function ToggleVehicleLock()
 						if lockStatus == 1 then -- unlocked
 							playAnim()
 							SetVehicleDoorsLocked(vehicleHandle, 2)
-							PlayVehicleDoorCloseSound(vehicleHandle, 1)
-							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
-						elseif lockStatus == 4 then -- locked
-							playAnim()
-							SetVehicleDoorsLocked(vehicleHandle, 1)
-							PlayVehicleDoorOpenSound(vehicleHandle, 0)
-							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
-						elseif lockStatus == 5 then -- locked
-							playAnim()
-							SetVehicleDoorsLocked(vehicleHandle, 1)
-							PlayVehicleDoorOpenSound(vehicleHandle, 0)
-							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
-						elseif lockStatus == 7 then -- locked
-							playAnim()
-							SetVehicleDoorsLocked(vehicleHandle, 2)
-							PlayVehicleDoorCloseSound(vehicleHandle, 1)
+							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 1.0)
 							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
 						elseif lockStatus == 2 then -- locked
 							playAnim()
 							SetVehicleDoorsLocked(vehicleHandle, 1)
-							PlayVehicleDoorCloseSound(vehicleHandle, 1)
+							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
+							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+						elseif lockStatus == 5 then -- locked
+							playAnim()
+							SetVehicleDoorsLocked(vehicleHandle, 1)
+							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
 							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
 						end
 					else --start check to see if key has been given to player.
@@ -110,27 +101,17 @@ function ToggleVehicleLock()
 								if lockStatus == 1 then -- unlocked
 									playAnim()
 									SetVehicleDoorsLocked(vehicleHandle, 2)
-									PlayVehicleDoorCloseSound(vehicleHandle, 1)
-									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
-								elseif lockStatus == 4 then -- locked
-									playAnim()
-									SetVehicleDoorsLocked(vehicleHandle, 1)
-									PlayVehicleDoorOpenSound(vehicleHandle, 0)
-									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
-								elseif lockStatus == 5 then -- locked
-									playAnim()
-									SetVehicleDoorsLocked(vehicleHandle, 1)
-									PlayVehicleDoorOpenSound(vehicleHandle, 0)
-									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
-								elseif lockStatus == 7 then -- locked
-									playAnim()
-									SetVehicleDoorsLocked(vehicleHandle, 2)
-									PlayVehicleDoorCloseSound(vehicleHandle, 1)
+									TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 1.0)
 									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
 								elseif lockStatus == 2 then -- locked
 									playAnim()
 									SetVehicleDoorsLocked(vehicleHandle, 1)
-									PlayVehicleDoorCloseSound(vehicleHandle, 1)
+									TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
+									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+								elseif lockStatus == 5 then -- locked
+									playAnim()
+									SetVehicleDoorsLocked(vehicleHandle, 1)
+									TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
 									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
 								end
 							end
@@ -150,11 +131,13 @@ function ToggleVehicleLock()
 			local lockStatus = GetVehicleDoorLockStatus(vehicle)
 			if lockStatus == 1 then -- unlocked
 				playAnim()
+				TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
 				SetVehicleDoorsLocked(vehicle, 2)
 				PlayVehicleDoorCloseSound(vehicle, 1)
 				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
 			elseif lockStatus == 2 then -- locked
 				playAnim()
+				TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 1.0)
 				SetVehicleDoorsLocked(vehicle, 1)
 				PlayVehicleDoorOpenSound(vehicle, 0)
 				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
@@ -238,4 +221,18 @@ AddEventHandler('esx_vehiclelock:giveKey', function(target)
 		
 	end, ESX.Math.Trim(GetVehicleNumberPlateText(vehicle)))
 	
+end)
+
+RegisterNetEvent('InteractSound_CL:PlayWithinDistance')
+AddEventHandler('InteractSound_CL:PlayWithinDistance', function(playerNetId, maxDistance, soundFile, soundVolume)
+    local lCoords = GetEntityCoords(GetPlayerPed(-1))
+    local eCoords = GetEntityCoords(GetPlayerPed(GetPlayerFromServerId(playerNetId)))
+    local distIs  = Vdist(lCoords.x, lCoords.y, lCoords.z, eCoords.x, eCoords.y, eCoords.z)
+	if(distIs <= maxDistance) then
+        SendNUIMessage({
+            transactionType     = 'playSound',
+            transactionFile     = soundFile,
+            transactionVolume   = soundVolume
+        })
+    end
 end)

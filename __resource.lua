@@ -27,3 +27,11 @@ dependencies {
 	'es_extended',
 	'esx_vehicleshop'
 }
+
+ui_page 'client/html/index.html'
+
+files {
+	'client/html/index.html',
+    'client/html/sounds/lock.ogg',
+    'client/html/sounds/unlock.ogg'
+}
