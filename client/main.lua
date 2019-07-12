@@ -179,9 +179,9 @@ AddEventHandler('esx_vehiclelock:giveKey', function(target)
 				end
 			end,  plate, target)
 		elseif not cb then 
-			exports['mythic_notify']:DoCustomHudText('error', 'You don\'t own this vehicle', 5000)
+			ESX.ShowNotification('You don\'t own this vehicle')
 		else
-			exports['mythic_notify']:DoCustomHudText('error', 'You broke something, please contact a dev.', 5000)
+			ESX.ShowNotification('You broke something, please contact a dev.')
 		end
 		
 	end, plate)
