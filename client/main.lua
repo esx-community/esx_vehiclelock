@@ -39,7 +39,7 @@ function StartWorkaroundTask()
 		if DoesEntityExist(vehicle) then
 			local lockStatus = GetVehicleDoorLockStatus(vehicle)
 			
-			if lockStatus == 4 then
+			if lockStatus > 2 then
 				ClearPedTasks(playerPed)
 			end
 		end
@@ -49,111 +49,68 @@ function StartWorkaroundTask()
 end
 
 function ToggleVehicleLock()
-	local playerPed = PlayerPedId()
-	local coords = GetEntityCoords(playerPed)
 	local vehicle
 	
 	Citizen.CreateThread(function()
 		StartWorkaroundTask()
 	end)
 	
-	if IsPedInAnyVehicle(playerPed, false) then
-		vehicle = GetVehiclePedIsIn(playerPed, false)
+	if IsPedInAnyVehicle(GetPlayerPed(-1), false) then
+		vehicle = GetVehiclePedIsIn(GetPlayerPed(-1), false)
 	else
-		vehicle = GetClosestVehicle(coords, 8.0, 0, 70)
-	end
-	
-	if not DoesEntityExist(vehicle) then --GetClosestVehicle doesn't return police cars. So use GetRayCast
 		local player = GetPlayerPed(-1)
 		local pos = GetEntityCoords(player)
 		local entityWorld = GetOffsetFromEntityInWorldCoords(player, 20.0, 20.0, 0.0)
 		local rayHandle = CastRayPointToPoint(pos.x, pos.y, pos.z, entityWorld.x, entityWorld.y, entityWorld.z, 10, player, 0)
 		local a, b, c, d, vehicleHandle = GetRaycastResult(rayHandle)
-		
-		if not DoesEntityExist(vehicleHandle) then --If not vehicle still found after ray cast, then return as dork
-			return
-		else
-			local plate = GetVehicleNumberPlateText(vehicleHandle)
-			if plate ~= nil then
-				ESX.TriggerServerCallback('esx_vehiclelock:requestPlayerCars', function(isOwnedVehicle)
-					if isOwnedVehicle then
-						local lockStatus = GetVehicleDoorLockStatus(vehicleHandle)
-						if lockStatus == 1 then -- unlocked
-							playAnim()
-							SetVehicleDoorsLocked(vehicleHandle, 2)
-							SetVehicleDoorsLockedForAllPlayers(vehicleHandle, true)
-							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 1.0)
-							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
-						elseif lockStatus == 2 then -- locked
-							playAnim()
-							SetVehicleDoorsLocked(vehicleHandle, 1)
-							SetVehicleDoorsLockedForAllPlayers(vehicleHandle, false)
-							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
-							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
-						elseif lockStatus == 5 then -- locked
-							playAnim()
-							SetVehicleDoorsLocked(vehicleHandle, 1)
-							SetVehicleDoorsLockedForAllPlayers(vehicleHandle, false)
-							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
-							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
-						end
-					else --start check to see if key has been given to player.
-						ESX.TriggerServerCallback('esx_vehiclelock:hasKey', function(cb)
-							if cb then
-								local lockStatus = GetVehicleDoorLockStatus(vehicleHandle)
-								if lockStatus == 1 then -- unlocked
-									playAnim()
-									SetVehicleDoorsLocked(vehicleHandle, 2)
-									SetVehicleDoorsLockedForAllPlayers(vehicleHandle, true)
-									TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 1.0)
-									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
-								elseif lockStatus == 2 then -- locked
-									playAnim()
-									SetVehicleDoorsLocked(vehicleHandle, 1)
-									SetVehicleDoorsLockedForAllPlayers(vehicleHandle, false)
-									TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
-									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
-								elseif lockStatus == 5 then -- locked
-									playAnim()
-									SetVehicleDoorsLocked(vehicleHandle, 1)
-									SetVehicleDoorsLockedForAllPlayers(vehicleHandle, false)
-									TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
-									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
-								end
-							end
-						end, plate)
-					end
-				end, plate)
-			end
-		end
+		vehicle = vehicleHandle
 	end
 	
 	if not DoesEntityExist(vehicle) then --If no vehicle still found after ray cast, then return as dork
 		return
 	end
 	
-	ESX.TriggerServerCallback('esx_vehiclelock:requestPlayerCars', function(isOwnedVehicle)
-		if isOwnedVehicle then
-			local lockStatus = GetVehicleDoorLockStatus(vehicle)
-			if lockStatus == 1 then -- unlocked
-				playAnim()
-				TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
-				SetVehicleDoorsLocked(vehicle, 2)
-				SetVehicleDoorsLockedForAllPlayers(vehicle, true)
-				PlayVehicleDoorCloseSound(vehicle, 1)
-				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
-			elseif lockStatus == 2 then -- locked
-				playAnim()
-				TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 1.0)
-				SetVehicleDoorsLocked(vehicle, 1)
-				SetVehicleDoorsLockedForAllPlayers(vehicle, false)
-				PlayVehicleDoorOpenSound(vehicle, 0)
-				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+	local plate = GetVehicleNumberPlateText(vehicle)
+	if plate ~= nil then
+		ESX.TriggerServerCallback('esx_vehiclelock:requestPlayerCars', function(isOwnedVehicle)
+			print(isOwnedVehicle)
+			if isOwnedVehicle then
+				local lockStatus = GetVehicleDoorLockStatus(vehicle)
+				if lockStatus == 1 then -- unlocked
+					playAnim()
+					SetVehicleDoorsLocked(vehicle, 2)
+					SetVehicleDoorsLockedForAllPlayers(vehicle, true)
+					TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 0.2)
+					TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
+				elseif lockStatus > 1 then -- locked
+					playAnim()
+					SetVehicleDoorsLocked(vehicle, 1)
+					SetVehicleDoorsLockedForAllPlayers(vehicle, false)
+					TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 0.2)
+					TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+				end
+			else --start check to see if key has been given to player.
+				ESX.TriggerServerCallback('esx_vehiclelock:hasKey', function(cb)
+					if cb then
+						local lockStatus = GetVehicleDoorLockStatus(vehicle)
+						if lockStatus == 1 then -- unlocked
+							playAnim()
+							SetVehicleDoorsLocked(vehicle, 2)
+							SetVehicleDoorsLockedForAllPlayers(vehicle, true)
+							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 0.2)
+							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
+						elseif lockStatus > 1 then -- locked
+							playAnim()
+							SetVehicleDoorsLocked(vehicle, 1)
+							SetVehicleDoorsLockedForAllPlayers(vehicle, false)
+							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 0.2)
+							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+						end
+					end
+				end, plate)
 			end
-		end
-		
-	end, ESX.Math.Trim(GetVehicleNumberPlateText(vehicle)))
-	
+		end, plate)
+	end
 end
 
 Citizen.CreateThread(function()
@@ -185,7 +142,6 @@ function playAnim()
 	end
 end
 
-
 --start of give key
 RegisterNetEvent('esx_vehiclelock:giveKey')
 AddEventHandler('esx_vehiclelock:giveKey', function(target)
@@ -206,6 +162,7 @@ AddEventHandler('esx_vehiclelock:giveKey', function(target)
 			vehicle = vehicleHandle
 		end
 	end
+	
 	if not DoesEntityExist(vehicle) then
 		return --not vehicle excists so lets break shit..
 	end
@@ -222,9 +179,9 @@ AddEventHandler('esx_vehiclelock:giveKey', function(target)
 				end
 			end,  plate, target)
 		elseif not cb then 
-			ESX.ShowNotification('You don\'t own this vehicle')
+			exports['mythic_notify']:DoCustomHudText('error', 'You don\'t own this vehicle', 5000)
 		else
-			ESX.ShowNotification('You broke something, please contact a dev.')
+			exports['mythic_notify']:DoCustomHudText('error', 'You broke something, please contact a dev.', 5000)
 		end
 		
 	end, plate)
