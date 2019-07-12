@@ -62,14 +62,14 @@ function ToggleVehicleLock()
 	else
 		vehicle = GetClosestVehicle(coords, 8.0, 0, 70)
 	end
-
+	
 	if not DoesEntityExist(vehicle) then --GetClosestVehicle doesn't return police cars. So use GetRayCast
 		local player = GetPlayerPed(-1)
 		local pos = GetEntityCoords(player)
 		local entityWorld = GetOffsetFromEntityInWorldCoords(player, 20.0, 20.0, 0.0)
 		local rayHandle = CastRayPointToPoint(pos.x, pos.y, pos.z, entityWorld.x, entityWorld.y, entityWorld.z, 10, player, 0)
 		local a, b, c, d, vehicleHandle = GetRaycastResult(rayHandle)
-
+		
 		if not DoesEntityExist(vehicleHandle) then --If not vehicle still found after ray cast, then return as dork
 			return
 		else
@@ -81,16 +81,19 @@ function ToggleVehicleLock()
 						if lockStatus == 1 then -- unlocked
 							playAnim()
 							SetVehicleDoorsLocked(vehicleHandle, 2)
+							SetVehicleDoorsLockedForAllPlayers(vehicleHandle, true)
 							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 1.0)
 							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
 						elseif lockStatus == 2 then -- locked
 							playAnim()
 							SetVehicleDoorsLocked(vehicleHandle, 1)
+							SetVehicleDoorsLockedForAllPlayers(vehicleHandle, false)
 							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
 							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
 						elseif lockStatus == 5 then -- locked
 							playAnim()
 							SetVehicleDoorsLocked(vehicleHandle, 1)
+							SetVehicleDoorsLockedForAllPlayers(vehicleHandle, false)
 							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
 							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
 						end
@@ -101,23 +104,26 @@ function ToggleVehicleLock()
 								if lockStatus == 1 then -- unlocked
 									playAnim()
 									SetVehicleDoorsLocked(vehicleHandle, 2)
+									SetVehicleDoorsLockedForAllPlayers(vehicleHandle, true)
 									TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 1.0)
 									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
 								elseif lockStatus == 2 then -- locked
 									playAnim()
 									SetVehicleDoorsLocked(vehicleHandle, 1)
+									SetVehicleDoorsLockedForAllPlayers(vehicleHandle, false)
 									TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
 									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
 								elseif lockStatus == 5 then -- locked
 									playAnim()
 									SetVehicleDoorsLocked(vehicleHandle, 1)
+									SetVehicleDoorsLockedForAllPlayers(vehicleHandle, false)
 									TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
 									TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
 								end
 							end
-						end, ESX.Math.Trim(plate))
+						end, plate)
 					end
-				end, ESX.Math.Trim(plate))
+				end, plate)
 			end
 		end
 	end
@@ -133,12 +139,14 @@ function ToggleVehicleLock()
 				playAnim()
 				TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 1.0)
 				SetVehicleDoorsLocked(vehicle, 2)
+				SetVehicleDoorsLockedForAllPlayers(vehicle, true)
 				PlayVehicleDoorCloseSound(vehicle, 1)
 				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
 			elseif lockStatus == 2 then -- locked
 				playAnim()
 				TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 1.0)
 				SetVehicleDoorsLocked(vehicle, 1)
+				SetVehicleDoorsLockedForAllPlayers(vehicle, false)
 				PlayVehicleDoorOpenSound(vehicle, 0)
 				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
 			end
@@ -198,41 +206,42 @@ AddEventHandler('esx_vehiclelock:giveKey', function(target)
 			vehicle = vehicleHandle
 		end
 	end
-	
+	print('vehicle: ' ..tostring(vehicle))
 	if not DoesEntityExist(vehicle) then
 		return --not vehicle excists so lets break shit..
 	end
 	
+	local plate = GetVehicleNumberPlateText(vehicle)
 	ESX.TriggerServerCallback('esx_vehiclelock:requestPlayerCars', function(cb)
 		
 		if cb then
-			ESX.TriggerServerCallback('esx_vehiclelock:giveKey', function(_cb)
+			ESX.TriggerServerCallback('esx_vehiclelock:giveKeyServer', function(_cb)
 				if _cb == ('alreadyKey') then
 					ESX.ShowNotification('This person already has a key')
 				elseif _cb == 'added' then
 					ESX.ShowNotification('You gave out a key.')
 				end
-			end,  ESX.Math.Trim(GetVehicleNumberPlateText(vehicle)), ESX.Math.Trim(target))
+			end,  plate, target)
 		elseif not cb then 
-			print('the vehicle is not owned')
+			exports['mythic_notify']:DoCustomHudText('error', 'You don\'t own this vehicle', 5000)
 		else
-			print('shit brokeddd')
+			exports['mythic_notify']:DoCustomHudText('error', 'You broke something, please contact a dev.', 5000)
 		end
 		
-	end, ESX.Math.Trim(GetVehicleNumberPlateText(vehicle)))
+	end, plate)
 	
 end)
 
 RegisterNetEvent('InteractSound_CL:PlayWithinDistance')
 AddEventHandler('InteractSound_CL:PlayWithinDistance', function(playerNetId, maxDistance, soundFile, soundVolume)
-    local lCoords = GetEntityCoords(GetPlayerPed(-1))
-    local eCoords = GetEntityCoords(GetPlayerPed(GetPlayerFromServerId(playerNetId)))
-    local distIs  = Vdist(lCoords.x, lCoords.y, lCoords.z, eCoords.x, eCoords.y, eCoords.z)
+	local lCoords = GetEntityCoords(GetPlayerPed(-1))
+	local eCoords = GetEntityCoords(GetPlayerPed(GetPlayerFromServerId(playerNetId)))
+	local distIs  = Vdist(lCoords.x, lCoords.y, lCoords.z, eCoords.x, eCoords.y, eCoords.z)
 	if(distIs <= maxDistance) then
-        SendNUIMessage({
-            transactionType     = 'playSound',
-            transactionFile     = soundFile,
-            transactionVolume   = soundVolume
-        })
-    end
+		SendNUIMessage({
+			transactionType     = 'playSound',
+			transactionFile     = soundFile,
+			transactionVolume   = soundVolume
+		})
+	end
 end)

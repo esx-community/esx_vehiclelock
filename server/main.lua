@@ -25,10 +25,10 @@ ESX.RegisterServerCallback('esx_vehiclelock:requestPlayerCars', function(source,
 end)
 
 --This checks to see if our target already owns a key, if not, registers it in the table.
-ESX.RegisterServerCallback('esx_vehiclelock:giveKey',function(source, cb, plate, target)
+ESX.RegisterServerCallback('esx_vehiclelock:giveKeyServer',function(source, cb, plate, target)
 	local targetPed = ESX.GetPlayerFromId(target)
 	local plateCheck = nil
-
+	print('in callback')
 	if(sharedPlates[plate])then
 
 		for k,v in pairs(sharedPlates[plate]) do
@@ -53,13 +53,16 @@ ESX.RegisterServerCallback('esx_vehiclelock:giveKey',function(source, cb, plate,
 end)
 
 --This checks if player has had a key given to them before unlocking car
-ESX.RegisterServerCallback('esx_vehiclelock:giveKey',function(source, cb, plate)
+ESX.RegisterServerCallback('esx_vehiclelock:hasKey',function(source, cb, plate)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if(sharedPlates[plate])then
-		for k,v in pairs(sharedPlates[plate]) do
-			if v == xPlayer.identifier then
+		for i=1,#sharedPlates[plate] do
+			print(sharedPlates[plate][i])
+			if sharedPlates[plate][i] == xPlayer.identifier then
 				cb(true)
 				return
+			else
+				cb(false)
 			end
 		end
 	end
