@@ -28,7 +28,7 @@ end)
 ESX.RegisterServerCallback('esx_vehiclelock:giveKeyServer',function(source, cb, plate, target)
 	local targetPed = ESX.GetPlayerFromId(target)
 	local plateCheck = nil
-	print('in callback')
+
 	if(sharedPlates[plate])then
 
 		for k,v in pairs(sharedPlates[plate]) do
