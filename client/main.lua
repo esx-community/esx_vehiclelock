@@ -60,10 +60,18 @@ function ToggleVehicleLock()
 	else
 		local player = GetPlayerPed(-1)
 		local pos = GetEntityCoords(player)
-		local entityWorld = GetOffsetFromEntityInWorldCoords(player, 20.0, 20.0, 0.0)
-		local rayHandle = CastRayPointToPoint(pos.x, pos.y, pos.z, entityWorld.x, entityWorld.y, entityWorld.z, 10, player, 0)
+		local entityWorld = GetOffsetFromEntityInWorldCoords(player, 0.0, 9.0, 0.0)
+		local rayHandle = CastRayPointToPoint(pos.x, pos.y, pos.z, entityWorld.x, entityWorld.y, entityWorld.z, 2, player, 0)
 		local a, b, c, d, vehicleHandle = GetRaycastResult(rayHandle)
 		vehicle = vehicleHandle
+		if not DoesEntityExist(vehicle) then
+			player = GetPlayerPed(-1)
+			pos = GetEntityCoords(player)
+			entityWorld = GetOffsetFromEntityInWorldCoords(player, 9.0, 0.0, 0.0)
+			rayHandle = CastRayPointToPoint(pos.x, pos.y, pos.z, entityWorld.x, entityWorld.y, entityWorld.z, 2, player, 0)
+			a, b, c, d, vehicleHandle = GetRaycastResult(rayHandle)
+			vehicle = vehicleHandle
+		end
 	end
 	
 	if not DoesEntityExist(vehicle) then --If no vehicle still found after ray cast, then return as dork
@@ -73,7 +81,6 @@ function ToggleVehicleLock()
 	local plate = GetVehicleNumberPlateText(vehicle)
 	if plate ~= nil then
 		ESX.TriggerServerCallback('esx_vehiclelock:requestPlayerCars', function(isOwnedVehicle)
-			print(isOwnedVehicle)
 			if isOwnedVehicle then
 				local lockStatus = GetVehicleDoorLockStatus(vehicle)
 				if lockStatus == 1 then -- unlocked
@@ -81,13 +88,13 @@ function ToggleVehicleLock()
 					SetVehicleDoorsLocked(vehicle, 2)
 					SetVehicleDoorsLockedForAllPlayers(vehicle, true)
 					TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 0.2)
-					TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
+					exports['mythic_notify']:DoCustomHudText('inform',  _U('message_locked') , 5000)
 				elseif lockStatus > 1 then -- locked
 					playAnim()
 					SetVehicleDoorsLocked(vehicle, 1)
 					SetVehicleDoorsLockedForAllPlayers(vehicle, false)
 					TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 0.2)
-					TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+					exports['mythic_notify']:DoCustomHudText('inform', _U('message_unlocked'), 5000)
 				end
 			else --start check to see if key has been given to player.
 				ESX.TriggerServerCallback('esx_vehiclelock:hasKey', function(cb)
@@ -98,13 +105,13 @@ function ToggleVehicleLock()
 							SetVehicleDoorsLocked(vehicle, 2)
 							SetVehicleDoorsLockedForAllPlayers(vehicle, true)
 							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "lock", 0.2)
-							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
+							exports['mythic_notify']:DoCustomHudText('inform',  _U('message_locked') , 5000)
 						elseif lockStatus > 1 then -- locked
 							playAnim()
 							SetVehicleDoorsLocked(vehicle, 1)
 							SetVehicleDoorsLockedForAllPlayers(vehicle, false)
 							TriggerServerEvent("InteractSound_SV:PlayWithinDistance", 10, "unlock", 0.2)
-							TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+							exports['mythic_notify']:DoCustomHudText('inform', _U('message_unlocked'), 5000)
 						end
 					end
 				end, plate)
@@ -117,7 +124,7 @@ Citizen.CreateThread(function()
 	while true do
 		Citizen.Wait(0)
 		
-		if IsControlJustReleased(0, Keys['U']) and IsInputDisabled(0) then
+		if IsControlJustReleased(0, Keys['U']) then
 			ToggleVehicleLock()
 			Citizen.Wait(300)
 			
@@ -179,9 +186,9 @@ AddEventHandler('esx_vehiclelock:giveKey', function(target)
 				end
 			end,  plate, target)
 		elseif not cb then 
-			ESX.ShowNotification('You don\'t own this vehicle')
+			exports['mythic_notify']:DoCustomHudText('error', 'You don\'t own this vehicle', 5000)
 		else
-			ESX.ShowNotification('You broke something, please contact a dev.')
+			exports['mythic_notify']:DoCustomHudText('error', 'You broke something, please contact a dev.', 5000)
 		end
 		
 	end, plate)

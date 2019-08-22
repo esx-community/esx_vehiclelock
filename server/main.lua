@@ -15,7 +15,6 @@ end)
 
 ESX.RegisterServerCallback('esx_vehiclelock:requestPlayerCars', function(source, cb, plate)
 	local xPlayer = ESX.GetPlayerFromId(source)
-	
 	MySQL.Async.fetchAll('SELECT 1 FROM owned_vehicles WHERE owner = @owner AND plate = @plate', {
 		['@owner'] = xPlayer.identifier,
 		['@plate'] = plate
@@ -28,7 +27,6 @@ end)
 ESX.RegisterServerCallback('esx_vehiclelock:giveKeyServer',function(source, cb, plate, target)
 	local targetPed = ESX.GetPlayerFromId(target)
 	local plateCheck = nil
-	print('in callback')
 	if(sharedPlates[plate])then
 
 		for k,v in pairs(sharedPlates[plate]) do
@@ -57,7 +55,6 @@ ESX.RegisterServerCallback('esx_vehiclelock:hasKey',function(source, cb, plate)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	if(sharedPlates[plate])then
 		for i=1,#sharedPlates[plate] do
-			print(sharedPlates[plate][i])
 			if sharedPlates[plate][i] == xPlayer.identifier then
 				cb(true)
 				return
