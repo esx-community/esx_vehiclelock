@@ -48,7 +48,7 @@ function ToggleVehicleLock()
 	if IsPedInAnyVehicle(playerPed, false) then
 		vehicle = GetVehiclePedIsIn(playerPed, false)
 	else
-		vehicle = GetClosestVehicle(coords, 8.0, 0, 70)
+		vehicle = GetClosestVehicle(coords, 8.0, 0, 71)
 	end
 
 	if not DoesEntityExist(vehicle) then
@@ -61,11 +61,11 @@ function ToggleVehicleLock()
 			local lockStatus = GetVehicleDoorLockStatus(vehicle)
 
 			if lockStatus == 1 then -- unlocked
-				SetVehicleDoorsLocked(vehicle, 4)
+				SetVehicleDoorsLocked(vehicle, 2)
 				PlayVehicleDoorCloseSound(vehicle, 1)
 
 				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
-			elseif lockStatus == 4 then -- locked
+			elseif lockStatus == 2 then -- locked
 				SetVehicleDoorsLocked(vehicle, 1)
 				PlayVehicleDoorOpenSound(vehicle, 0)
 
