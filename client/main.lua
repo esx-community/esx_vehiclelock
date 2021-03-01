@@ -64,12 +64,12 @@ function ToggleVehicleLock()
 				SetVehicleDoorsLocked(vehicle, 2)
 				PlayVehicleDoorCloseSound(vehicle, 1)
 
-				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
+				exports['mythic_notify']:DoHudText('error', _U('message_locked') )
 			elseif lockStatus == 2 then -- locked
 				SetVehicleDoorsLocked(vehicle, 1)
 				PlayVehicleDoorOpenSound(vehicle, 0)
 
-				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+				exports['mythic_notify']:DoHudText('success', _U('message_unlocked') )
 			end
 		end
 
