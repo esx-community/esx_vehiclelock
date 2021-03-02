@@ -52,6 +52,8 @@ function ToggleVehicleLock()
 	end
 
 	if not DoesEntityExist(vehicle) then
+		--ESX.ShowNotification("~o~No vehicles to lock nearby.")
+		exports['mythic_notify']:DoHudText('error', 'No vehicles to lock nearby.')
 		return
 	end
 
@@ -59,17 +61,55 @@ function ToggleVehicleLock()
 
 		if isOwnedVehicle then
 			local lockStatus = GetVehicleDoorLockStatus(vehicle)
+			local vehicleLabel = GetDisplayNameFromVehicleModel(GetEntityModel(vehicle))
+
+			local dict = "anim@mp_player_intmenu@key_fob@"
+    
+			RequestAnimDict(dict)
+			while not HasAnimDictLoaded(dict) do
+				Citizen.Wait(100)
+			end
 
 			if lockStatus == 1 then -- unlocked
+				--SetVehicleDoorsLocked(vehicle, 2)
+				--PlayVehicleDoorCloseSound(vehicle, 1)
+				SetVehicleDoorShut(vehicle, 0, false)
+				SetVehicleDoorShut(vehicle, 1, false)
+				SetVehicleDoorShut(vehicle, 2, false)
+				SetVehicleDoorShut(vehicle, 3, false)
 				SetVehicleDoorsLocked(vehicle, 2)
 				PlayVehicleDoorCloseSound(vehicle, 1)
 
-				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_locked') } })
+				--ESX.ShowNotification('You have ~r~locked~s~ your ~y~'..vehicleLabel ..'~s~.')
+				exports['mythic_notify']:DoHudText('error', 'You have locked your '..vehicleLabel ..'.')
+
+				if not IsPedInAnyVehicle(PlayerPedId(), true) then
+					TaskPlayAnim(GetPlayerPed(-1), dict, "fob_click_fp", 8.0, 8.0, -1, 48, 1, false, false, false)
+				end
+					SetVehicleLights(vehicle, 2)
+						Citizen.Wait(150)
+					SetVehicleLights(vehicle, 0)
+						Citizen.Wait(150)
+					SetVehicleLights(vehicle, 2)
+						Citizen.Wait(150)
+					SetVehicleLights(vehicle, 0)
 			elseif lockStatus == 2 then -- locked
 				SetVehicleDoorsLocked(vehicle, 1)
 				PlayVehicleDoorOpenSound(vehicle, 0)
 
-				TriggerEvent('chat:addMessage', { args = { _U('message_title'), _U('message_unlocked') } })
+				--ESX.ShowNotification('You have ~g~unlocked~s~ your ~y~'..vehicleLabel ..'~s~.')
+				exports['mythic_notify']:DoHudText('success', 'You have unlocked your '..vehicleLabel ..'.')
+
+				if not IsPedInAnyVehicle(PlayerPedId(), true) then
+					TaskPlayAnim(GetPlayerPed(-1), dict, "fob_click_fp", 8.0, 8.0, -1, 48, 1, false, false, false)
+				end
+					SetVehicleLights(vehicle, 2)
+						Citizen.Wait(150)
+					SetVehicleLights(vehicle, 0)
+						Citizen.Wait(150)
+					SetVehicleLights(vehicle, 2)
+						Citizen.Wait(150)
+					SetVehicleLights(vehicle, 0)
 			end
 		end
 
@@ -81,11 +121,6 @@ Citizen.CreateThread(function()
 		Citizen.Wait(0)
 
 		if IsControlJustReleased(0, 303) and IsInputDisabled(0) then
-			ToggleVehicleLock()
-			Citizen.Wait(300)
-	
-		-- D-pad down on controllers works, too!
-		elseif IsControlJustReleased(0, 173) and not IsInputDisabled(0) then
 			ToggleVehicleLock()
 			Citizen.Wait(300)
 		end
